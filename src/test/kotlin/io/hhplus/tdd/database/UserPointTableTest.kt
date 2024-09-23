@@ -14,6 +14,9 @@ class UserPointTableTest {
 		userPointTable = UserPointTable()
 	}
 
+	/**
+	 * UserPointTable의 selectById() 메서드의 기본적인 조회 기능을 검증하기 위한 테스트 코드
+	 */
 	@Test
 	fun ID로_UserPoint_조회하기_디폴트값() {
         val actual = userPointTable.selectById(1L)
@@ -21,6 +24,9 @@ class UserPointTableTest {
 		validateUserPoint(actual, 1L, 0)
     }
 
+	/**
+	 * UserPointTable의 insertOrUpdate() 메서드의 UserPoint 객체 삽입 기능을 검증하기 위한 테스트 코드
+	 */
 	@Test
 	fun UserPoint_삽입하기() {
 		userPointTable.insertOrUpdate(1L, 100L)
@@ -30,6 +36,9 @@ class UserPointTableTest {
 		validateUserPoint(actual, 1L, 100L)
 	}
 
+	/**
+	 * UserPointTable의 insertOrUpdate() 메서드의 UserPoint 객체 업데이트 기능을 검증하기 위한 테스트 코드
+	 */
 	@Test
 	fun UserPoint_업데이트하기() {
 		userPointTable.insertOrUpdate(1L, 100L)
