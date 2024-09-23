@@ -7,11 +7,11 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertAll
 
 class UserPointTableTest {
-	private lateinit var userPointTable: UserPointTable
+	private lateinit var sut: UserPointTable
 
 	@BeforeEach
 	fun setUp() {
-		userPointTable = UserPointTable()
+		sut = UserPointTable()
 	}
 
 	/**
@@ -19,7 +19,7 @@ class UserPointTableTest {
 	 */
 	@Test
 	fun ID로_UserPoint_조회하기_디폴트값() {
-        val actual = userPointTable.selectById(1L)
+        val actual = sut.selectById(1L)
 
 		validateUserPoint(actual, 1L, 0)
     }
@@ -29,9 +29,9 @@ class UserPointTableTest {
 	 */
 	@Test
 	fun UserPoint_삽입하기() {
-		userPointTable.insertOrUpdate(1L, 100L)
+		sut.insertOrUpdate(1L, 100L)
 
-		val actual = userPointTable.selectById(1L)
+		val actual = sut.selectById(1L)
 
 		validateUserPoint(actual, 1L, 100L)
 	}
@@ -41,10 +41,10 @@ class UserPointTableTest {
 	 */
 	@Test
 	fun UserPoint_업데이트하기() {
-		userPointTable.insertOrUpdate(1L, 100L)
-		userPointTable.insertOrUpdate(1L, 200L)
+		sut.insertOrUpdate(1L, 100L)
+		sut.insertOrUpdate(1L, 200L)
 
-		val actual = userPointTable.selectById(1L)
+		val actual = sut.selectById(1L)
 
 
 		validateUserPoint(actual, 1L, 200L)
