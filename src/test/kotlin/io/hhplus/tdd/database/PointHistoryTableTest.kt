@@ -4,6 +4,7 @@ import io.hhplus.tdd.point.TransactionType
 import org.assertj.core.api.AssertionsForClassTypes.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertAll
 
 class PointHistoryTableTest {
 	private lateinit var pointHistoryTable: PointHistoryTable
@@ -33,6 +34,14 @@ class PointHistoryTableTest {
 
 		val actual = pointHistoryTable.selectAllByUserId(1L)
 
-		assertThat(actual.size).isEqualTo(2)
+		assertAll(
+			{ assertThat(actual.size).isEqualTo(2) },
+			{ assertThat(actual[0].userId).isEqualTo(1L) },
+			{ assertThat(actual[0].amount).isEqualTo(200L) },
+			{ assertThat(actual[0].type).isEqualTo(TransactionType.CHARGE) },
+			{ assertThat(actual[1].userId).isEqualTo(1L) },
+			{ assertThat(actual[1].amount).isEqualTo(100L) },
+			{ assertThat(actual[1].type).isEqualTo(TransactionType.USE) }
+		)
 	}
 }
