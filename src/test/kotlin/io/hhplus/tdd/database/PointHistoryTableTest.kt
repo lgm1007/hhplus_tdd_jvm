@@ -3,6 +3,7 @@ package io.hhplus.tdd.database
 import io.hhplus.tdd.point.TransactionType
 import org.assertj.core.api.AssertionsForClassTypes.assertThat
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertAll
 
@@ -18,7 +19,8 @@ class PointHistoryTableTest {
 	 * PointHistoryTable의 selectAllByUserId() 메서드의 기본 조회 기능을 검증하기 위한 테스트 코드
 	 */
 	@Test
-	fun ID로_PointHistory_모두_조회하기_디폴트값() {
+	@DisplayName("ID로 PointHistory 모두 조회하는 기능 테스트")
+	fun selectAllPointHistoryByUserIdTest() {
 		val actual = sut.selectAllByUserId(1L)
 
 		assertThat(actual.size).isEqualTo(0)
@@ -28,7 +30,8 @@ class PointHistoryTableTest {
 	 * PointHistoryTable의 insert() 메서드의 데이터 삽입 기능을 검증하기 위한 테스트 코드
 	 */
 	@Test
-	fun PointHistory_삽압하기() {
+	@DisplayName("PointHistory 삽압하는 기능 테스트")
+	fun insertPointHistoryTest() {
 		sut.insert(1L, 200L, TransactionType.CHARGE, System.currentTimeMillis())
 		sut.insert(1L, 100L, TransactionType.USE, System.currentTimeMillis())
 
