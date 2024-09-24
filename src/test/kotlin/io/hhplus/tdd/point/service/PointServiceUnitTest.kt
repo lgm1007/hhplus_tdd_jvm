@@ -2,13 +2,11 @@ package io.hhplus.tdd.point.service
 
 import io.hhplus.tdd.database.PointHistoryTable
 import io.hhplus.tdd.database.UserPointTable
+import io.hhplus.tdd.exception.PointException
 import io.hhplus.tdd.point.TransactionType
 import io.hhplus.tdd.point.dto.PointDto
 import org.assertj.core.api.AssertionsForClassTypes.assertThat
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.DisplayName
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertAll
+import org.junit.jupiter.api.*
 
 class PointServiceUnitTest {
 	private lateinit var sut: PointService
@@ -33,5 +31,15 @@ class PointServiceUnitTest {
 			{ assertThat(actual.id).isEqualTo(1L) },
 			{ assertThat(actual.point).isEqualTo(300L) }
 		)
+	}
+
+	@Test
+	@DisplayName("포인트 충전 최대 잔고로 실패 예외케이스")
+	fun shouldChargePointExceptionTest() {
+		val pointDto = PointDto(1L, TransactionType.CHARGE, 10_001L)
+
+		assertThrows<PointException> {
+			sut.chargeUserPoint(pointDto)
+		}
 	}
 }
