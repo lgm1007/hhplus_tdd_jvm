@@ -1,10 +1,10 @@
 package io.hhplus.tdd.point.service
 
-import io.hhplus.tdd.database.PointHistoryTable
-import io.hhplus.tdd.database.UserPointTable
 import io.hhplus.tdd.point.PointHistory
 import io.hhplus.tdd.point.UserPoint
 import io.hhplus.tdd.point.dto.PointDto
+import io.hhplus.tdd.point.repository.PointHistoryRepository
+import io.hhplus.tdd.point.repository.PointRepository
 import io.hhplus.tdd.point.validate.PointValidator
 import org.springframework.stereotype.Service
 import java.util.concurrent.ConcurrentHashMap
@@ -13,19 +13,19 @@ import kotlin.concurrent.withLock
 
 @Service
 class PointService(
-	private val userPointTable: UserPointTable,
-	private val pointHistoryTable: PointHistoryTable,
+	private val pointRepository: PointRepository,
+	private val pointHistoryRepository: PointHistoryRepository,
 ) : PointUseCase {
 	// 동시성 제어 방식을 위한 Lock ConcurrentHashMap
 	// 같은 userId에 대한 요청은 Lock을 획득하여 대기하도록 하기 위함
 	private val userPointLocks = ConcurrentHashMap<Long, ReentrantLock>()
 
 	override fun getUserPointById(id: Long): UserPoint {
-		return userPointTable.selectById(id)
+		return pointRepository.findById(id)
 	}
 
 	override fun getAllPointHistoriesByUserId(userId: Long): List<PointHistory> {
-		return pointHistoryTable.selectAllByUserId(userId)
+		return pointHistoryRepository.findAllByUserId(userId)
 	}
 
 	override fun chargeUserPoint(pointDto: PointDto): UserPoint {
@@ -35,20 +35,18 @@ class PointService(
 		}
 
 		return lock.withLock {
-			val point = userPointTable.selectById(pointDto.userId).point
+			val point = getUserPointById(pointDto.userId).point
 			val afterChargeAmount = point + pointDto.amount
 
 			// 유저가 현재 보유한 포인트 + 충전하고자 하는 포인트가 최대 잔고를 넘는지 검사
 			PointValidator.validatePointOverMaxLimit(afterChargeAmount)
 
-			pointHistoryTable.insert(
-				pointDto.userId,
-				pointDto.amount,
-				pointDto.type,
+			pointHistoryRepository.insert(
+				pointDto,
 				System.currentTimeMillis()
 			)
 
-			userPointTable.insertOrUpdate(pointDto.userId, afterChargeAmount)
+			pointRepository.save(UserPoint(pointDto.userId, afterChargeAmount, System.currentTimeMillis()))
 		}
 	}
 
@@ -58,20 +56,18 @@ class PointService(
 		}
 
 		return lock.withLock {
-			val point = userPointTable.selectById(pointDto.userId).point
+			val point = getUserPointById(pointDto.userId).point
 			val afterUseAmount = point - pointDto.amount
 
 			// 유저가 현재 보유한 포인트 - 사용하고자 하는 포인트가 최소 포인트 값보다 작은지 검사 (잔고 부족)
 			PointValidator.validatePointLackMinLimit(afterUseAmount)
 
-			pointHistoryTable.insert(
-				pointDto.userId,
-				pointDto.amount,
-				pointDto.type,
+			pointHistoryRepository.insert(
+				pointDto,
 				System.currentTimeMillis()
 			)
 
-			userPointTable.insertOrUpdate(pointDto.userId, afterUseAmount)
+			pointRepository.save(UserPoint(pointDto.userId, afterUseAmount, System.currentTimeMillis()))
 		}
 	}
 }
