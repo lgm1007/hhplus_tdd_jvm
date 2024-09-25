@@ -20,6 +20,17 @@ class PointServiceUnitTest {
 	}
 
 	@Test
+	@DisplayName("포인트 조회 기능 테스트")
+	fun getUserPointTest() {
+		val actual = sut.getUserPointById(1L)
+
+		assertAll(
+			{ assertThat(actual.id).isEqualTo(1L) },
+			{ assertThat(actual.point).isEqualTo(0) },
+		)
+	}
+
+	@Test
 	@DisplayName("포인트 충전 기능 테스트")
 	fun chargeUserPointTest() {
 		val pointDtos = listOf(PointDto(1L, TransactionType.CHARGE, 100L), PointDto(1L, TransactionType.CHARGE, 200L))
@@ -37,7 +48,7 @@ class PointServiceUnitTest {
 	}
 
 	@Test
-	@DisplayName("포인트 충전에 대한 내역 저장 테스트")
+	@DisplayName("포인트 충전에 대한 내역 조회 기능 테스트")
 	fun insertChargeHistoryTest() {
 		val pointDtos = listOf(PointDto(1L, TransactionType.CHARGE, 100L), PointDto(1L, TransactionType.CHARGE, 200L))
 
@@ -86,7 +97,7 @@ class PointServiceUnitTest {
 	}
 
 	@Test
-	@DisplayName("포인트 사용에 대한 내역 저장 테스트")
+	@DisplayName("포인트 사용에 대한 내역 조회 기능 테스트")
 	fun insertUseHistoryTest() {
 		val chargePointDto = PointDto(1L, TransactionType.CHARGE, 200L)
 		val usePointDto = PointDto(1L, TransactionType.USE, 100L)
