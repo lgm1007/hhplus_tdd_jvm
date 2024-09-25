@@ -77,7 +77,7 @@ class PointServiceConcurrentTest {
 	}
 
 	@Test
-	@DisplayName("포인트 충전 및 사용의 병렬 요청에 대한 동시성 제어 기능 테스트")
+	@DisplayName("포인트 충전 및 사용의 병렬 요청에 대해 동일한 유저에 대한 요청의 순차성 보장 테스트")
 	fun handleChargeAndUsePointConcurrentTest() {
 		// 최대 10개의 스레드를 가진 스레드 풀 생성
 		val executor = Executors.newFixedThreadPool(10)
