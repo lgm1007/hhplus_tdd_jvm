@@ -6,6 +6,7 @@ import io.hhplus.tdd.exception.PointException
 import io.hhplus.tdd.point.TransactionType
 import io.hhplus.tdd.point.dto.PointDto
 import org.assertj.core.api.AssertionsForClassTypes.assertThat
+import org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy
 import org.junit.jupiter.api.*
 
 class PointServiceUnitTest {
@@ -60,9 +61,9 @@ class PointServiceUnitTest {
 	fun shouldExceptionChargePointLimitOverTest() {
 		val pointDto = PointDto(1L, TransactionType.CHARGE, 10_001L)
 
-		assertThrows<PointException> {
-			sut.chargeUserPoint(pointDto)
-		}
+		assertThatThrownBy { sut.chargeUserPoint(pointDto) }
+			.isInstanceOf(PointException::class.java)
+			.hasMessage("충전 시 포인트가 최대 잔고입니다.")
 	}
 
 	@Test
@@ -106,8 +107,8 @@ class PointServiceUnitTest {
 	fun shouldExceptionLeakUsePointTest() {
 		val pointDto = PointDto(1L, TransactionType.USE, 100L)
 
-		assertThrows<PointException> {
-			sut.useUserPoint(pointDto)
-		}
+		assertThatThrownBy { sut.useUserPoint(pointDto) }
+			.isInstanceOf(PointException::class.java)
+			.hasMessage("포인트 잔고가 부족합니다.")
 	}
 }
