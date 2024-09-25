@@ -137,6 +137,9 @@ class PointServiceConcurrentTest {
 			user1Future.join()
 			user2Future.join()
 
+			// 일정 시간 작업이 완료될 때까지 대기
+			Thread.sleep(5000)
+
 			val user1Point = pointRepository.findById(1L).point
 			val user2Point = pointRepository.findById(2L).point
 
