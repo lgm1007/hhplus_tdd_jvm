@@ -1,10 +1,12 @@
 package io.hhplus.tdd.point.service
 
-import io.hhplus.tdd.database.PointHistoryTable
-import io.hhplus.tdd.database.UserPointTable
 import io.hhplus.tdd.exception.PointException
+import io.hhplus.tdd.point.PointHistory
 import io.hhplus.tdd.point.TransactionType
+import io.hhplus.tdd.point.UserPoint
 import io.hhplus.tdd.point.dto.PointDto
+import io.hhplus.tdd.point.repository.PointHistoryRepository
+import io.hhplus.tdd.point.repository.PointRepository
 import org.assertj.core.api.AssertionsForClassTypes.assertThat
 import org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy
 import org.junit.jupiter.api.*
@@ -14,7 +16,7 @@ class PointServiceUnitTest {
 
 	@BeforeEach
 	fun setUp() {
-		sut = PointService(UserPointTable(), PointHistoryTable())
+		sut = PointService(FakePointRepository(), FakePointHistoryRepository())
 	}
 
 	@Test
@@ -110,5 +112,43 @@ class PointServiceUnitTest {
 		assertThatThrownBy { sut.useUserPoint(pointDto) }
 			.isInstanceOf(PointException::class.java)
 			.hasMessage("포인트 잔고가 부족합니다.")
+	}
+}
+
+class FakePointRepository : PointRepository {
+	private val table = HashMap<Long, UserPoint>()
+
+	override fun findById(id: Long): UserPoint {
+		Thread.sleep(Math.random().toLong() * 200L)
+		return table[id] ?: UserPoint(id = id, point = 0, updateMillis = System.currentTimeMillis())
+	}
+
+	override fun save(userPoint: UserPoint): UserPoint {
+		Thread.sleep(Math.random().toLong() * 300L)
+		val userPoint = UserPoint(id = userPoint.id, point = userPoint.point, updateMillis = System.currentTimeMillis())
+		table[userPoint.id] = userPoint
+		return userPoint
+	}
+}
+
+class FakePointHistoryRepository : PointHistoryRepository {
+	private val table = mutableListOf<PointHistory>()
+	private var cursor: Long = 1L
+
+	override fun findAllByUserId(userId: Long): List<PointHistory> {
+		return table.filter { it.userId == userId }
+	}
+
+	override fun insert(pointDto: PointDto, updateMillis: Long): PointHistory {
+		Thread.sleep(Math.random().toLong() * 300L)
+		val history = PointHistory(
+			id = cursor++,
+			userId = pointDto.userId,
+			amount = pointDto.amount,
+			type = pointDto.type,
+			timeMillis = updateMillis,
+		)
+		table.add(history)
+		return history
 	}
 }
