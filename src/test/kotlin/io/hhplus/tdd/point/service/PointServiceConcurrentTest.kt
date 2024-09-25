@@ -5,6 +5,10 @@ import io.hhplus.tdd.database.UserPointTable
 import io.hhplus.tdd.point.TransactionType
 import io.hhplus.tdd.point.UserPoint
 import io.hhplus.tdd.point.dto.PointDto
+import io.hhplus.tdd.point.repository.PointHistoryMemoryRepository
+import io.hhplus.tdd.point.repository.PointHistoryRepository
+import io.hhplus.tdd.point.repository.PointMemoryRepository
+import io.hhplus.tdd.point.repository.PointRepository
 import org.assertj.core.api.AssertionsForClassTypes.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
@@ -14,15 +18,15 @@ import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Executors
 
 class PointServiceConcurrentTest {
-	private lateinit var userPointTable: UserPointTable
-	private lateinit var pointHistoryTable: PointHistoryTable
+	private lateinit var pointRepository: PointRepository
+	private lateinit var pointHistoryRepository: PointHistoryRepository
 	private lateinit var sut: PointService
 
 	@BeforeEach
 	fun setUp() {
-		userPointTable = UserPointTable()
-		pointHistoryTable = PointHistoryTable()
-		sut = PointService(userPointTable, pointHistoryTable)
+		pointRepository = PointMemoryRepository(UserPointTable())
+		pointHistoryRepository = PointHistoryMemoryRepository(PointHistoryTable())
+		sut = PointService(pointRepository, pointHistoryRepository)
 	}
 
 	@Test
@@ -55,11 +59,11 @@ class PointServiceConcurrentTest {
 				it.join()
 			}
 
-			val user1Point = userPointTable.selectById(1L).point
-			val user2Point = userPointTable.selectById(2L).point
+			val user1Point = pointRepository.findById(1L).point
+			val user2Point = pointRepository.findById(2L).point
 
-			val user1Histories = pointHistoryTable.selectAllByUserId(1L)
-			val user2Histories = pointHistoryTable.selectAllByUserId(2L)
+			val user1Histories = pointHistoryRepository.findAllByUserId(1L)
+			val user2Histories = pointHistoryRepository.findAllByUserId(2L)
 
 			assertAll(
 				{ assertThat(user1Point).isEqualTo(1000L) },
@@ -133,11 +137,11 @@ class PointServiceConcurrentTest {
 			user1Future.join()
 			user2Future.join()
 
-			val user1Point = userPointTable.selectById(1L).point
-			val user2Point = userPointTable.selectById(2L).point
+			val user1Point = pointRepository.findById(1L).point
+			val user2Point = pointRepository.findById(2L).point
 
-			val user1Histories = pointHistoryTable.selectAllByUserId(1L)
-			val user2Histories = pointHistoryTable.selectAllByUserId(2L)
+			val user1Histories = pointHistoryRepository.findAllByUserId(1L)
+			val user2Histories = pointHistoryRepository.findAllByUserId(2L)
 
 			assertAll(
 				{ assertThat(user1Point).isEqualTo(300L) },
