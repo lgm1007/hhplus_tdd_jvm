@@ -30,7 +30,7 @@ class PointService(
 	override fun chargeUserPoint(pointDto: PointDto): UserPoint {
 		// userId가 concurrentHashMap 에 없으면 새로운 lock 획득, 있으면 존재하는 lock 가져옴
 		val lock = userPointLocks.computeIfAbsent(pointDto.userId) {
-			ReentrantLock()
+			ReentrantLock(true)
 		}
 
 		return lock.withLock {
@@ -48,7 +48,7 @@ class PointService(
 
 	override fun useUserPoint(pointDto: PointDto): UserPoint {
 		val lock = userPointLocks.computeIfAbsent(pointDto.userId) {
-			ReentrantLock()
+			ReentrantLock(true)
 		}
 
 		return lock.withLock {
