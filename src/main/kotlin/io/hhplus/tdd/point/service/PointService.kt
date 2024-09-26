@@ -5,7 +5,6 @@ import io.hhplus.tdd.point.UserPoint
 import io.hhplus.tdd.point.dto.PointDto
 import io.hhplus.tdd.point.repository.PointHistoryRepository
 import io.hhplus.tdd.point.repository.PointRepository
-import io.hhplus.tdd.point.validate.PointValidator
 import org.springframework.stereotype.Service
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.locks.ReentrantLock
@@ -35,18 +34,15 @@ class PointService(
 		}
 
 		return lock.withLock {
-			val point = getUserPointById(pointDto.userId).point
-			val afterChargeAmount = point + pointDto.amount
-
-			// 유저가 현재 보유한 포인트 + 충전하고자 하는 포인트가 최대 잔고를 넘는지 검사
-			PointValidator.validatePointOverMaxLimit(afterChargeAmount)
+			val userPoint = getUserPointById(pointDto.userId)
+			userPoint.charge(pointDto.amount)
 
 			pointHistoryRepository.insert(
 				pointDto,
 				System.currentTimeMillis()
 			)
 
-			pointRepository.save(UserPoint(pointDto.userId, afterChargeAmount, System.currentTimeMillis()))
+			pointRepository.save(userPoint)
 		}
 	}
 
@@ -56,18 +52,15 @@ class PointService(
 		}
 
 		return lock.withLock {
-			val point = getUserPointById(pointDto.userId).point
-			val afterUseAmount = point - pointDto.amount
-
-			// 유저가 현재 보유한 포인트 - 사용하고자 하는 포인트가 최소 포인트 값보다 작은지 검사 (잔고 부족)
-			PointValidator.validatePointLackMinLimit(afterUseAmount)
+			val userPoint = getUserPointById(pointDto.userId)
+			userPoint.use(pointDto.amount)
 
 			pointHistoryRepository.insert(
 				pointDto,
 				System.currentTimeMillis()
 			)
 
-			pointRepository.save(UserPoint(pointDto.userId, afterUseAmount, System.currentTimeMillis()))
+			pointRepository.save(userPoint)
 		}
 	}
 }
