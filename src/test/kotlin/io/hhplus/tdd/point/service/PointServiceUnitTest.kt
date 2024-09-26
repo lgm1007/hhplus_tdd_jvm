@@ -31,7 +31,7 @@ class PointServiceUnitTest {
 	}
 
 	@Test
-	@DisplayName("포인트 충전 기능 테스트")
+	@DisplayName("포인트 100, 200 충전 기능 테스트")
 	fun chargeUserPointTest() {
 		val pointDtos = listOf(PointDto(1L, TransactionType.CHARGE, 100L), PointDto(1L, TransactionType.CHARGE, 200L))
 
@@ -80,7 +80,17 @@ class PointServiceUnitTest {
 	}
 
 	@Test
-	@DisplayName("포인트 사용 기능 테스트")
+	@DisplayName("포인트 충전 중 충전할 포인트가 음수 값일 경우 실패 예외케이스")
+	fun shouldExceptionChargePointNegativeTest() {
+		val pointDto = PointDto(1L, TransactionType.CHARGE, -1L)
+
+		assertThatThrownBy { sut.chargeUserPoint(pointDto) }
+			.isInstanceOf(PointException::class.java)
+			.hasMessage("충전할 포인트가 음수입니다.")
+	}
+
+	@Test
+	@DisplayName("포인트 200 충전 후 100 사용 기능 테스트")
 	fun useUserPointTest() {
 		val chargePointDto = PointDto(1L, TransactionType.CHARGE, 200L)
 		val usePointDto = PointDto(1L, TransactionType.USE, 100L)
@@ -123,6 +133,16 @@ class PointServiceUnitTest {
 		assertThatThrownBy { sut.useUserPoint(pointDto) }
 			.isInstanceOf(PointException::class.java)
 			.hasMessage("포인트 잔고가 부족합니다.")
+	}
+
+	@Test
+	@DisplayName("포인트 사용 중 사용할 포인트가 음수 값일 경우 실패 예외케이스")
+	fun shouldExceptionUsePointNegativeTest() {
+		val pointDto = PointDto(1L, TransactionType.USE, -1L)
+
+		assertThatThrownBy { sut.useUserPoint(pointDto) }
+			.isInstanceOf(PointException::class.java)
+			.hasMessage("사용할 포인트가 음수입니다.")
 	}
 }
 
