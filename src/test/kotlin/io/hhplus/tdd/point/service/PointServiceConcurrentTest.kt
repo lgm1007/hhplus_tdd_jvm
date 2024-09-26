@@ -3,7 +3,6 @@ package io.hhplus.tdd.point.service
 import io.hhplus.tdd.database.PointHistoryTable
 import io.hhplus.tdd.database.UserPointTable
 import io.hhplus.tdd.point.TransactionType
-import io.hhplus.tdd.point.UserPoint
 import io.hhplus.tdd.point.dto.PointDto
 import io.hhplus.tdd.point.repository.PointHistoryMemoryRepository
 import io.hhplus.tdd.point.repository.PointHistoryRepository
@@ -15,6 +14,7 @@ import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertAll
 import java.util.concurrent.CompletableFuture
+import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executors
 
 class PointServiceConcurrentTest {
@@ -34,30 +34,35 @@ class PointServiceConcurrentTest {
 	fun handleChargePointConcurrentTest() {
 		// 최대 10개의 스레드를 가진 스레드 풀 생성
 		val executor = Executors.newFixedThreadPool(10)
+		val user1Latch = CountDownLatch(10)
+		val user2Latch = CountDownLatch(10)
 
 		try {
-			val futures = mutableListOf<CompletableFuture<UserPoint>>()
-
 			// 아이디 1L인 유저의 다중 포인트 충전 요청
 			repeat(10) {
-				val future = CompletableFuture.supplyAsync({
-					sut.chargeUserPoint(PointDto(1L, TransactionType.CHARGE, 100L))
-			    }, executor)
-				futures.add(future)
+				executor.submit {
+					try {
+						sut.chargeUserPoint(PointDto(1L, TransactionType.CHARGE, 100L))
+					} finally {
+						user1Latch.countDown()
+					}
+				}
 			}
 
 			// 아이디 2L인 유저의 다중 포인트 충전 요청
 			repeat(10) {
-				val future = CompletableFuture.supplyAsync({
-					sut.chargeUserPoint(PointDto(2L, TransactionType.CHARGE, 100L))
-				}, executor)
-				futures.add(future)
+				executor.submit {
+					try {
+						sut.chargeUserPoint(PointDto(2L, TransactionType.CHARGE, 100L))
+					} finally {
+						user2Latch.countDown()
+					}
+				}
 			}
 
 			// 모든 작업이 완료될 때까지 대기
-			futures.forEach {
-				it.join()
-			}
+			user1Latch.await()
+			user2Latch.await()
 
 			val user1Point = pointRepository.findById(1L).point
 			val user2Point = pointRepository.findById(2L).point
@@ -136,9 +141,6 @@ class PointServiceConcurrentTest {
 			// 모든 작업이 완료될 때까지 대기
 			user1Future.join()
 			user2Future.join()
-
-			// 일정 시간 작업이 완료될 때까지 대기
-			Thread.sleep(5000)
 
 			val user1Point = pointRepository.findById(1L).point
 			val user2Point = pointRepository.findById(2L).point
